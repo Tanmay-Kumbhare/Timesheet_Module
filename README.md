@@ -1,46 +1,64 @@
-# Timesheet Management System
+# 📊 Timesheet Management System
 
-A comprehensive timesheet management system for educational institutions, built with **Grails 7.0.8** (Backend) and **Vue.js 3** (Frontend).
+> A comprehensive timesheet management system for educational institutions, built with **Grails 7.0.8** (Backend) and **Vue.js 3** (Frontend).
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Grails](https://img.shields.io/badge/Grails-7.0.8-brightgreen.svg)](https://grails.org/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4fc08d.svg)](https://vuejs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-orange.svg)](https://mysql.com/)
+
+---
 
 ## 🏫 Institution
-**Vishwakarma Institute of Technology, Pune**
+**Vishwakarma Institute of Technology, Pune**  
+*Department of Computer Engineering*
+
+---
 
 ## 📋 Features
 
 ### ✅ Completed Features
-- **Task Categories Management** - Create, edit, remove task categories
-- **Task Management** - Create, edit, remove tasks with category assignment
-- **Timesheet Submission** - Submit daily work with date, time, description
-- **Auto Hours Calculation** - Automatic calculation from start/end time
-- **My Timesheets History** - View all submitted timesheets with status
-- **HOD Dashboard** - Approve/Reject timesheets with remarks
-- **Reports Module** - Filter by department, status, date range
-- **Export to CSV** - Download reports in CSV format
-- **Summary Cards** - Real-time statistics (Total, Pending, Approved, Rejected)
 
-### 🔄 In Progress
-- User Authentication
-- Email Notifications
-- Calendar View
-- Monthly Reports Dashboard
+| Module | Features |
+|--------|----------|
+| **Task Management** | Create, edit, remove task categories & tasks with category assignment |
+| **Timesheet Entry** | Submit daily work with date, time, description; auto hours calculation |
+| **History View** | View all submitted timesheets with real-time status tracking |
+| **HOD Dashboard** | Approve/Reject timesheets with remarks and comments |
+| **Reports Module** | Filter by department, status, date range; export to CSV |
+| **Analytics** | Real-time summary cards (Total, Pending, Approved, Rejected) |
+
+### 🔄 Roadmap
+
+- [ ] User Authentication (Login/Logout)
+- [ ] Email Notifications (Approval/Rejection alerts)
+- [ ] Calendar View (Visual timesheet display)
+- [ ] Monthly Reports Dashboard
+- [ ] Mobile Responsive Design
+- [ ] PDF Export
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Backend
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Grails | 7.0.8 | Web Framework |
-| Groovy | 3.0.x | Programming Language |
-| MySQL | 8.0 | Database |
-| Gradle | 7.x | Build Tool |
+| **Grails** | 7.0.8 | Web Framework |
+| **Groovy** | 3.0.x | Programming Language |
+| **MySQL** | 8.0 | Database |
+| **Gradle** | 7.x | Build Tool |
+| **Hibernate** | 6.x | ORM |
 
 ### Frontend
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Vue.js | 3.x | Frontend Framework |
-| Vite | 7.x | Build Tool |
-| Axios | 1.x | HTTP Client |
-| Vue Router | 4.x | Routing |
+| **Vue.js** | 3.x | Frontend Framework |
+| **Vite** | 7.x | Build Tool |
+| **Axios** | 1.x | HTTP Client |
+| **Vue Router** | 4.x | Routing |
+
+---
 
 ## 🚀 Quick Start
 
@@ -50,28 +68,40 @@ A comprehensive timesheet management system for educational institutions, built 
 - Node.js 16+
 - MySQL 8.0
 
-Final Repository Structure
+### Installation
 
-Timesheet_Module/
-├── timesheet-backend/              # Grails 7.0.8 Backend
-├── timesheet-frontend/             # Vue.js 3 Frontend
-├── database/
-│   └── schema.sql                  # Complete database schema
-├── README.md                       # Project documentation ✅
-├── ARCHITECTURE.md                 # System architecture & API reference ✅
-├── LICENSE                         # MIT License
-├── DEPLOYMENT.md                   # Production deployment guide
-├── .env.example                    # Environment variables template
-└── .gitignore                      # Git ignore rules
+#### 1. Clone the Repository
 
-### Database Setup
+```bash
+git clone https://github.com/Tanmay-Kumbhare/Timesheet_Module.git
+cd Timesheet_Module
+```
+
+#### 2. Database Setup
 
 ```sql
--- Create database
 CREATE DATABASE IF NOT EXISTS timesheet_db 
 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE timesheet_db;
+```
 
--- Run all table creation scripts (provided in /database/schema.sql)
+#### 3. Backend Setup
 
+```bash
+cd timesheet-backend
+grails clean
+grails run-app
+```
+
+> Backend runs at: http://localhost:8080
+
+#### 4. Frontend Setup
+
+```bash
+cd timesheet-frontend
+npm install
+npm run dev
+```
+
+> Frontend runs at: http://localhost:5173
