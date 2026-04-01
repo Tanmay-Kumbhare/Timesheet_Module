@@ -11,7 +11,7 @@
 
 ## 🏫 Institution
 **Vishwakarma Institute of Technology, Pune**  
-*Department of Computer Engineering*
+*Department of Computer Science Engineering(AI&ML)*
 
 ---
 
