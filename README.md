@@ -60,3 +60,17 @@ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE timesheet_db;
 
 -- Run all table creation scripts (provided in /database/schema.sql)
+
+Final Repository Structure
+
+Timesheet_Module/
+├── timesheet-backend/              # Grails 7.0.8 Backend
+├── timesheet-frontend/             # Vue.js 3 Frontend
+├── database/
+│   └── schema.sql                  # Complete database schema
+├── README.md                       # Project documentation ✅
+├── ARCHITECTURE.md                 # System architecture & API reference ✅
+├── LICENSE                         # MIT License
+├── DEPLOYMENT.md                   # Production deployment guide
+├── .env.example                    # Environment variables template
+└── .gitignore                      # Git ignore rules
