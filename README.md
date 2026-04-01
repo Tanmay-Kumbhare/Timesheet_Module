@@ -50,17 +50,6 @@ A comprehensive timesheet management system for educational institutions, built 
 - Node.js 16+
 - MySQL 8.0
 
-### Database Setup
-
-```sql
--- Create database
-CREATE DATABASE IF NOT EXISTS timesheet_db 
-CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE timesheet_db;
-
--- Run all table creation scripts (provided in /database/schema.sql)
-
 Final Repository Structure
 
 Timesheet_Module/
@@ -74,3 +63,15 @@ Timesheet_Module/
 ├── DEPLOYMENT.md                   # Production deployment guide
 ├── .env.example                    # Environment variables template
 └── .gitignore                      # Git ignore rules
+
+### Database Setup
+
+```sql
+-- Create database
+CREATE DATABASE IF NOT EXISTS timesheet_db 
+CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE timesheet_db;
+
+-- Run all table creation scripts (provided in /database/schema.sql)
+
