@@ -1,25 +1,27 @@
 package com.vit.timesheet
 
 class Employee {
-    String     empNo
-    String     name
-    String     email
+    String name
+    String employeeNo
     Department department
-    String     role   = 'EMPLOYEE'   // EMPLOYEE | COORDINATOR | HOD
-    Boolean    isActive = true
-
+    String email
+    String role
+    Boolean isActive = true
+    
     static belongsTo = [department: Department]
-
+    
     static constraints = {
-        empNo      blank: false, maxSize: 50, unique: true
-        name       blank: false, maxSize: 255
-        email      nullable: true,  email: true
+        name blank: false, maxSize: 100
+        employeeNo blank: false, unique: true, maxSize: 50
         department nullable: false
-        role       blank: false, inList: ['EMPLOYEE', 'COORDINATOR', 'HOD']
-        isActive   nullable: false
+        email nullable: true, email: true, maxSize: 100
+        role inList: ['TEACHER', 'HOD', 'ADMIN', 'COORDINATOR'], nullable: false
+        isActive nullable: false
     }
-
+    
     static mapping = {
         table 'employee'
+        version false
+        id generator: 'identity'
     }
 }

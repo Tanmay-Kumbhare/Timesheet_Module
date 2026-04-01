@@ -1,42 +1,30 @@
+// ============================================================
+// FILE: src/views/TimesheetDashboard.vue
+// Wireframe Image 1: Entry page with Coordinator button
+// ============================================================
 <template>
-  <div class="container">
-    <h1>Timesheet Module</h1>
-
-    <div class="cards">
-      <div class="card" @click="$router.push('/timesheet/master')">
-        <h3>Timesheet Master</h3>
-      </div>
-
-      <div class="card" @click="$router.push('/timesheet/reports')">
-        <h3>Timesheet Reports</h3>
-      </div>
+  <div class="dashboard-page">
+    <h2 class="page-title">Timesheet</h2>
+    <div class="tiles">
+      <RouterLink to="/timesheet/master" class="tile">
+        <div class="tile-icon">👥</div>
+        <div class="tile-label">Coordinator</div>
+      </RouterLink>
     </div>
   </div>
 </template>
 
 <style scoped>
-.container {
-  padding: 40px;
-  text-align: center;
+.dashboard-page { padding: 30px 40px; }
+.page-title { text-align: center; margin-bottom: 30px; font-size: 18px; }
+.tiles { display: flex; gap: 20px; flex-wrap: wrap; }
+.tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 120px; height: 100px; border: 2px solid #00008b; border-radius: 6px;
+  text-decoration: none; color: #333;
 }
-
-.cards {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-top: 30px;
-}
-
-.card {
-  padding: 40px;
-  width: 220px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: 0.3s;
-}
-
-.card:hover {
-  background: #f5f5f5;
-}
+.tile:hover { background: #f0f4ff; }
+.tile-icon { font-size: 36px; margin-bottom: 6px; }
+.tile-label { font-size: 13px; font-weight: bold; }
 </style>
+

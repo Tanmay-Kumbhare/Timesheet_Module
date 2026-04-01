@@ -1,174 +1,205 @@
 <template>
-  <div class="module-layout">
-    <SidebarNav />
-    <main class="crud-main">
-      <h2 class="page-title">Task Master Management</h2>
+  <div class="task-master-container">
+    <div class="header-actions">
+      <h2>Task Management</h2>
+      <button @click="openAddModal" class="btn-add">+ New Task</button>
+    </div>
 
-      <div class="form-card">
-        <h3>{{ editId ? 'Edit Task' : 'Add Task' }}</h3>
-        <div class="form-row">
-          <label>Name <span class="req">*</span></label>
-          <input v-model="form.name" placeholder="Enter task name" />
-        </div>
-        <div class="form-row">
-          <label>Task Type <span class="req">*</span></label>
-          <select v-model="form.taskTypeId">
-  <option value="">-- Select Task Type --</option>
+    <div v-if="loading" class="loading">Loading tasks...</div>
+    <div v-if="error" class="error-message">{{ error }}</div>
 
-  <option 
-    v-for="type in taskTypes"
-    :key="type.id"
-    :value="type.id"
-  >
-    {{ type.name }}
-  </option>
+    <table v-else-if="taskMasters.length > 0" class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Task Title</th>
+          <th>Category</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in taskMasters" :key="item.id">
+          <td>{{ item.id }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.taskType?.name || '-' }}</td>
+          <td>
+            <button @click="openEditModal(item)" class="btn-edit">Edit</button>
+            <button @click="deleteItem(item.id)" class="btn-delete">Remove</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-</select>
-        </div>
-        <div class="form-actions">
-          <button class="btn-save" @click="save">{{ editId ? 'Update' : 'Save' }}</button>
-          <button class="btn-cancel" @click="resetForm" v-if="editId">Cancel</button>
-        </div>
-        <p v-if="formError" class="error-msg">{{ formError }}</p>
+    <div v-else-if="!loading && taskMasters.length === 0" class="no-data">
+      No tasks found. Click "New Task" to create one.
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div v-if="showModal" class="modal" @click.self="closeModal">
+      <div class="modal-content">
+        <h3>{{ isEdit ? 'Edit Task' : 'Add New Task' }}</h3>
+        <form @submit.prevent="saveItem">
+          <div class="form-group">
+            <label>Task Title *</label>
+            <input v-model="formData.name" required />
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select v-model="formData.taskTypeId" required>
+              <option value="">Select Category</option>
+              <option v-for="type in taskTypes" :key="type.id" :value="type.id">
+                {{ type.name }}
+              </option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button type="submit" class="btn-save">Save</button>
+            <button type="button" @click="closeModal" class="btn-cancel">Cancel</button>
+          </div>
+        </form>
       </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Sr. No.</th>
-            <th>Task Name</th>
-            <th>Task Type</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading"><td colspan="5" class="center">Loading...</td></tr>
-          <tr v-else-if="items.length === 0"><td colspan="5" class="center">No records found.</td></tr>
-          <tr v-for="(item, idx) in items" :key="item.id">
-            <td>{{ idx + 1 }}</td>
-            <td>{{ item.name }}</td>
-            <td>{{ item.taskType?.name }}</td>
-            <td>
-              <span :class="item.isActive ? 'badge-active' : 'badge-inactive'">
-                {{ item.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
-            <td class="action-cell">
-              <button class="btn-edit" @click="startEdit(item)">Edit</button>
-              <button class="btn-delete" @click="remove(item.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </main>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import SidebarNav from '@/components/SidebarNav.vue'
-import { masterApi} from '@/api/index.js'
+<script>
+import axios from 'axios'
 
-const items     = ref([])
-const taskTypes = ref([])
-const loading   = ref(false)
-const editId    = ref(null)
-const formError = ref('')
-const form      = ref({ name: '', taskTypeId: '' })
-
-onMounted(async () => {
-
-loading.value = true
-
-try {
-
-const [tasks, types] = await Promise.all([
-  masterApi.list("taskMasters"),
-  masterApi.list("taskTypes")
-])
-
-items.value = tasks.data
-taskTypes.value = types.data
-
-} finally {
-
-loading.value = false
-
-}
-
-})
-
-function startEdit(item) {
-  editId.value = item.id
-  form.value   = { name: item.name, taskTypeId: item.taskType?.id ?? '' }
-  formError.value = ''
-}
-
-function resetForm() {
-  editId.value = null
-  form.value   = { name: '', taskTypeId: '' }
-  formError.value = ''
-}
-
-async function loadTasks(){
-
-const res = await masterApi.list("taskMasters")
-
-items.value = res.data
-
-}
-
-async function save(){
-
-await masterApi.create(
-  "taskMasters",
-  {
-    name: form.value.name,
-    taskType: { id: form.value.taskTypeId }
+export default {
+  name: 'TaskMasterManagement',
+  data() {
+    return {
+      taskMasters: [],
+      taskTypes: [],
+      loading: false,
+      error: null,
+      showModal: false,
+      isEdit: false,
+      formData: {
+        id: null,
+        name: '',
+        taskTypeId: ''
+      }
+    }
+  },
+  mounted() {
+    this.fetchTaskMasters()
+    this.fetchTaskTypes()
+  },
+  methods: {
+    async fetchTaskMasters() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await axios.get('http://localhost:8080/taskMasters')
+        console.log('Task Masters response:', response.data)
+        this.taskMasters = response.data.data || response.data || []
+      } catch (err) {
+        console.error('Error fetching tasks:', err)
+        this.error = 'Failed to load tasks: ' + (err.message || 'Unknown error')
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchTaskTypes() {
+      try {
+        const response = await axios.get('http://localhost:8080/taskTypes')
+        console.log('Task Types response:', response.data)
+        this.taskTypes = response.data.data || response.data || []
+      } catch (err) {
+        console.error('Error fetching task types:', err)
+      }
+    },
+    openAddModal() {
+      this.isEdit = false
+      this.formData = { id: null, name: '', taskTypeId: '' }
+      this.showModal = true
+    },
+    openEditModal(item) {
+      this.isEdit = true
+      this.formData = {
+        id: item.id,
+        name: item.name,
+        taskTypeId: item.taskType?.id || ''
+      }
+      this.showModal = true
+    },
+    async saveItem() {
+      if (!this.formData.name || !this.formData.taskTypeId) {
+        alert('Please fill all required fields')
+        return
+      }
+      
+      const payload = {
+        name: this.formData.name,
+        taskTypeId: parseInt(this.formData.taskTypeId)
+      }
+      
+      console.log('Saving payload:', payload)
+      
+      try {
+        if (this.isEdit) {
+          const response = await axios.put(`http://localhost:8080/taskMasters/${this.formData.id}`, payload)
+          console.log('Update response:', response.data)
+          alert('Task updated successfully')
+        } else {
+          const response = await axios.post('http://localhost:8080/taskMasters', payload)
+          console.log('Create response:', response.data)
+          alert('Task added successfully')
+        }
+        this.closeModal()
+        this.fetchTaskMasters()
+      } catch (err) {
+        console.error('Save error:', err)
+        let errorMsg = 'Failed to save task.\n'
+        if (err.response?.data?.message) {
+          errorMsg += err.response.data.message
+        } else if (err.response?.data?.errors) {
+          errorMsg += JSON.stringify(err.response.data.errors)
+        } else {
+          errorMsg += err.message
+        }
+        alert(errorMsg)
+      }
+    },
+    async deleteItem(id) {
+      if (confirm('Are you sure you want to remove this task?')) {
+        try {
+          await axios.delete(`http://localhost:8080/taskMasters/${id}`)
+          alert('Task removed successfully')
+          this.fetchTaskMasters()
+        } catch (err) {
+          console.error('Delete error:', err)
+          alert('Failed to remove task: ' + (err.response?.data?.message || err.message))
+        }
+      }
+    },
+    closeModal() {
+      this.showModal = false
+      this.formData = { id: null, name: '', taskTypeId: '' }
+    }
   }
-)
-
-form.value = {
-  name: "",
-  taskTypeId: ""
-}
-
-loadTasks()
-
-}
-
-async function remove(id){
-
-if (!confirm("Delete this task?")) return
-
-await masterApi.delete("taskMasters", id)
-
-const res = await masterApi.list("taskMasters")
-
-items.value = res.data
-
 }
 </script>
 
 <style scoped>
-.module-layout { display: flex; padding: 20px; gap: 20px; }
-.crud-main { flex: 1; }
-.page-title { text-align: center; margin-bottom: 16px; font-size: 17px; font-weight: bold; }
-.form-card { border: 1px solid #ccc; border-radius: 4px; padding: 16px; margin-bottom: 20px; max-width: 480px; background: #fafafa; }
-.form-card h3 { margin-bottom: 12px; font-size: 15px; }
-.form-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.form-row label { min-width: 80px; font-weight: 500; }
-.form-row input, .form-row select { flex: 1; }
-.form-actions { display: flex; gap: 10px; }
-.req { color: red; }
-.error-msg { color: red; margin-top: 8px; font-size: 13px; }
-.btn-save   { background: #4caf50; color: #fff; border: none; padding: 6px 18px; border-radius: 3px; }
-.btn-cancel { background: #aaa;    color: #fff; border: none; padding: 6px 18px; border-radius: 3px; }
-.btn-edit   { background: #2196f3; color: #fff; border: none; padding: 4px 12px; border-radius: 3px; margin-right: 6px; }
-.btn-delete { background: #f44336; color: #fff; border: none; padding: 4px 12px; border-radius: 3px; }
-.badge-active   { background: #e8f5e9; color: #388e3c; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-.badge-inactive { background: #fce4ec; color: #c62828; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-.action-cell { white-space: nowrap; }
-.center { text-align: center; padding: 20px; color: #888; }
+.task-master-container { padding: 20px; }
+.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.btn-add { background: #4caf50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+.btn-edit { background: #2196f3; color: white; margin-right: 8px; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
+.btn-delete { background: #f44336; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
+.data-table { width: 100%; border-collapse: collapse; background: white; }
+.data-table th, .data-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+.data-table th { background: #1a237e; color: white; }
+.loading { text-align: center; padding: 40px; }
+.error-message { background: #ffebee; color: #c62828; padding: 15px; margin-bottom: 20px; border-left: 4px solid #c62828; }
+.no-data { text-align: center; padding: 40px; color: #666; }
+.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; padding: 30px; border-radius: 8px; width: 500px; max-width: 90%; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+.form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.btn-save { background: #4caf50; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+.btn-cancel { background: #999; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
 </style>

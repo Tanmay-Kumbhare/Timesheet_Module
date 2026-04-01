@@ -1,53 +1,67 @@
 package com.vit.timesheet
 
 import grails.rest.RestfulController
-import grails.converters.JSON
 
 class TaskTypeController extends RestfulController<TaskType> {
     static responseFormats = ['json']
-
+    
+    def taskTypeService
+    
     TaskTypeController() {
         super(TaskType)
     }
-
-    // GET /api/taskTypes
+    
     @Override
     def index() {
         def list = TaskType.findAllByIsActive(true, [sort: 'name', order: 'asc'])
-        respond list
+        
+        def responseList = list.collect { type ->
+            [
+                id       : type.id,
+                name     : type.name,
+                isActive : type.isActive,
+                tasks    : type.tasks?.collect { [id: it.id] } ?: []
+            ]
+        }
+        
+        respond([
+            success: true,
+            data   : responseList
+        ])
     }
-
-    // POST /api/taskTypes
+    
     @Override
     def save() {
-        def instance = new TaskType(request.JSON)
-        if (!instance.save(flush: true)) {
-            respond instance.errors, status: 422
+        def result = taskTypeService.saveTaskType(request.JSON)
+        
+        if (!result.success) {
+            respond result, status: 400
             return
         }
-        respond instance, status: 201
+        
+        respond result, status: 201
     }
-
-    // PUT /api/taskTypes/:id
-    @Override
-    def update() {
-        def instance = TaskType.get(params.id)
-        if (!instance) { render status: 404; return }
-        instance.properties = request.JSON
-        if (!instance.save(flush: true)) {
-            respond instance.errors, status: 422
+    
+    def update(Long id) {
+        def result = taskTypeService.updateTaskType(id, request.JSON)
+        
+        if (!result.success) {
+            respond result, status: 400
             return
         }
-        respond instance
+        
+        respond result
     }
-
-    // DELETE /api/taskTypes/:id
+    
     @Override
     def delete() {
-        def instance = TaskType.get(params.id)
-        if (!instance) { render status: 404; return }
-        instance.isActive = false
-        instance.save(flush: true)
+        def result = taskTypeService.deleteTaskType(params.long('id'))
+        
+        if (!result.success) {
+            respond result, status: 400
+            return
+        }
+        
         render status: 204
     }
 }

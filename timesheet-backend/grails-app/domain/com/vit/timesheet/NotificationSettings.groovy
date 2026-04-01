@@ -1,22 +1,22 @@
 package com.vit.timesheet
 
 class NotificationSettings {
-    String  notificationType   // EMAIL_REMINDER | APPROVAL_ALERT
-    String  recipientRole      // EMPLOYEE | HOD | COORDINATOR
-    String  subject
-    String  messageTemplate
+    String notificationType  // EMAIL_REMINDER, APPROVAL_ALERT, etc.
+    String recipientRole     // EMPLOYEE, HOD, ADMIN
+    String subject
+    String messageTemplate
     Boolean isActive = true
-
+    
     static constraints = {
-        notificationType blank: false, inList: ['EMAIL_REMINDER', 'APPROVAL_ALERT']
-        recipientRole    blank: false, inList: ['EMPLOYEE', 'HOD', 'COORDINATOR']
-        subject          blank: false, maxSize: 255
-        messageTemplate  blank: false
-        isActive         nullable: false
+        notificationType blank: false, maxSize: 50, inList: ['EMAIL_REMINDER', 'APPROVAL_ALERT', 'TIMESHEET_SUBMISSION', 'DEADLINE_REMINDER']
+        recipientRole blank: false, maxSize: 20, inList: ['EMPLOYEE', 'HOD', 'ADMIN', 'COORDINATOR']
+        subject blank: false, maxSize: 200
+        messageTemplate blank: false, maxSize: 500
+        isActive nullable: false
     }
-
+    
     static mapping = {
         table 'notification_settings'
-        messageTemplate type: 'text'
+        version false
     }
 }

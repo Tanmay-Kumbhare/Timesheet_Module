@@ -1,16 +1,23 @@
 package com.vit.timesheet
 
-import grails.rest.RestfulController
+import grails.converters.JSON
 
-class EmployeeController extends RestfulController<Employee> {
-    static responseFormats = ['json']
-    EmployeeController() { super(Employee) }
-
-    @Override
+class EmployeeController {
+    
     def index() {
-        def list = params.departmentId
-            ? Employee.findAllByDepartmentAndIsActive(Department.load(params.departmentId.toLong()), true, [sort: 'name'])
-            : Employee.findAllByIsActive(true, [sort: 'name'])
-        respond list
+        def employees = Employee.findAllByIsActive(true)
+        def result = employees.collect { emp ->
+            [
+                id: emp.id,
+                name: emp.name,
+                employeeNo: emp.employeeNo,
+                department: [
+                    id: emp.department?.id,
+                    name: emp.department?.name
+                ],
+                role: emp.role
+            ]
+        }
+        render([success: true, data: result] as JSON)
     }
 }

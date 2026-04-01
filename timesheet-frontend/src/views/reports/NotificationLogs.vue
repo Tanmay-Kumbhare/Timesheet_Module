@@ -1,95 +1,90 @@
 <template>
-  <div>
-    <h3 class="section-title">Notification Logs</h3>
-
-    <div class="filter-card">
-      <div class="filter-grid">
-        <div class="filter-row">
-          <label>Status</label>
-          <select v-model="filters.status">
-            <option value="">-- All --</option>
-            <option value="SENT">Sent</option>
-            <option value="FAILED">Failed</option>
-          </select>
-        </div>
-        <div class="filter-row">
-          <label>Date From</label>
-          <input type="date" v-model="filters.dateFrom" />
-        </div>
-        <div class="filter-row">
-          <label>Date To</label>
-          <input type="date" v-model="filters.dateTo" />
-        </div>
-      </div>
-      <div class="filter-actions">
-        <button class="btn-search" @click="loadLogs">Search</button>
-        <button class="btn-clear" @click="clearFilters">Clear</button>
+  <div class="logs-container">
+    <div class="filter-section">
+      <h2>Notification Logs</h2>
+      <div class="filters">
+        <input type="date" v-model="filters.startDate" />
+        <input type="date" v-model="filters.endDate" />
+        <select v-model="filters.status">
+          <option value="">All Status</option>
+          <option value="Sent">Sent</option>
+          <option value="Failed">Failed</option>
+          <option value="Pending">Pending</option>
+        </select>
+        <button @click="fetchLogs" class="btn-search">Search</button>
       </div>
     </div>
 
-    <table v-if="logs.length > 0">
+    <div v-if="loading" class="loading">Loading logs...</div>
+
+    <table v-else class="logs-table">
       <thead>
-        <tr>
-          <th>Sr. No.</th>
-          <th>Emp No</th>
-          <th>Employee</th>
-          <th>Department</th>
-          <th>Subject</th>
-          <th>Status</th>
-          <th>Sent At</th>
-        </tr>
+        <tr><th>Date & Time</th><th>Event Type</th><th>Recipient</th><th>Channel</th><th>Status</th><th>Message</th></tr>
       </thead>
       <tbody>
-        <tr v-for="(log, idx) in logs" :key="log.logId">
-          <td>{{ idx + 1 }}</td>
-          <td>{{ log.empNo }}</td>
-          <td>{{ log.employeeName }}</td>
-          <td>{{ log.departmentName }}</td>
-          <td>{{ log.subject }}</td>
-          <td>
-            <span :class="log.status === 'SENT' ? 'badge-sent' : 'badge-failed'">
-              {{ log.status }}
-            </span>
-          </td>
-          <td>{{ log.sentAt }}</td>
+        <tr v-for="(log, idx) in logs" :key="idx">
+          <td>{{ log.timestamp }}</td>
+          <td>{{ log.eventType }}</td>
+          <td>{{ log.recipient }}</td>
+          <td>{{ log.channel }}</td>
+          <td><span :class="'status-' + log.status">{{ log.status }}</span></td>
+          <td>{{ log.message }}</td>
+        </tr>
+        <tr v-if="logs.length === 0">
+          <td colspan="6" class="no-data">No logs found</td>
         </tr>
       </tbody>
     </table>
-    <p v-else class="hint">Select filters and click Search, or no logs available yet.</p>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { reportApi } from '@/api/index.js'
+<script>
+import { reportApi } from '@/api'
 
-const logs    = ref([])
-const filters = ref({ status: '', dateFrom: '', dateTo: '' })
-
-async function loadLogs() {
-  const params = {}
-  if (filters.value.status)   params.status   = filters.value.status
-  if (filters.value.dateFrom) params.dateFrom = filters.value.dateFrom
-  if (filters.value.dateTo)   params.dateTo   = filters.value.dateTo
-  logs.value = await reportApi.notificationLogs(params)
-}
-
-function clearFilters() {
-  filters.value = { status: '', dateFrom: '', dateTo: '' }
-  logs.value = []
+export default {
+  data() {
+    return {
+      filters: {
+        startDate: '',
+        endDate: '',
+        status: ''
+      },
+      logs: [],
+      loading: false
+    }
+  },
+  mounted() {
+    this.fetchLogs()
+  },
+  methods: {
+    async fetchLogs() {
+      this.loading = true
+      try {
+        const response = await reportApi.getNotificationLogs(this.filters)
+        this.logs = response.data.data || response.data
+      } catch (error) {
+        console.error('Error fetching logs:', error)
+        alert('Failed to load notification logs')
+      } finally {
+        this.loading = false
+      }
+    }
+  }
 }
 </script>
 
 <style scoped>
-.section-title { margin-bottom: 14px; font-size: 15px; font-weight: bold; color: #1a237e; }
-.filter-card { border: 1px solid #ccc; padding: 14px; border-radius: 4px; margin-bottom: 16px; background: #fafafa; }
-.filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.filter-row { display: flex; flex-direction: column; gap: 4px; }
-.filter-row label { font-weight: 500; font-size: 13px; }
-.filter-actions { display: flex; gap: 10px; }
-.btn-search { background: #1a237e; color: #fff; border: none; padding: 7px 20px; border-radius: 3px; }
-.btn-clear  { background: #aaa;    color: #fff; border: none; padding: 7px 20px; border-radius: 3px; }
-.hint { color: #888; padding: 20px; text-align: center; }
-.badge-sent   { background: #e8f5e9; color: #388e3c; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-.badge-failed { background: #fce4ec; color: #c62828; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.logs-container { padding: 20px; }
+.filter-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+.filters { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+.filters select, .filters input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+.btn-search { background: #1a237e; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; }
+.logs-table { width: 100%; border-collapse: collapse; background: white; }
+.logs-table th, .logs-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+.logs-table th { background: #1a237e; color: white; }
+.status-Sent { color: green; font-weight: bold; }
+.status-Failed { color: red; }
+.status-Pending { color: orange; }
+.loading { text-align: center; padding: 40px; }
+.no-data { text-align: center; color: #666; }
 </style>
